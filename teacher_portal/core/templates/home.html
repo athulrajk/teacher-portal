@@ -1,0 +1,86 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Teacher Dashboard</title>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body class="dashboard-body">
+  <div class="overlay">
+
+    <!-- 🔒 Logout Button -->
+    <div class="header" style="display: flex; justify-content: flex-end; padding: 10px;">
+      <form action="{% url 'logout' %}" method="post" style="display:inline;">
+        {% csrf_token %}
+        <button type="submit" class="logout">Logout</button>
+      </form>
+    </div>
+
+    <!-- 📋 Toolbar: Add | Export | Search -->
+    <div class="toolbar" style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 1rem;">
+      <button class="btn" id="addBtn">Add Student</button>
+      <a href="{% url 'export_csv' %}" class="btn">Export CSV</a>
+      <form method="get" style="display: flex; gap: 8px; align-items: center; margin: 0;">
+        <input type="text" name="q" placeholder="Search by name or subject"
+               value="{{ query }}" style="padding: 8px; border-radius: 6px; border: 1px solid #ccc;">
+        <button type="submit" class="btn">Search</button>
+      </form>
+    </div>
+
+    <!-- 📊 Student Table -->
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Subject</th>
+          <th>Marks</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for student in students %}
+        <tr data-id="{{ student.id }}">
+          <td>{{ student.name }}</td>
+          <td>{{ student.subject }}</td>
+          <td>{{ student.marks }}</td>
+          <td>
+            <div class="dropdown" id="dropdown-{{ student.id }}">
+              <button class="dropdown-toggle" onclick="toggleDropdown(event, {{ student.id }})">&#8942;</button>
+              <div class="dropdown-menu">
+                <button onclick="openEditModal({{ student.id }}, '{{ student.name }}', '{{ student.subject }}', {{ student.marks }})">Edit</button>
+                <button onclick="deleteStudent({{ student.id }})">Delete</button>
+              </div>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="4" style="text-align: center; color: #888;">No students found.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ✏️ Modal for Add/Edit Student -->
+  <div id="modal" class="modal hidden">
+    <div class="modal-content">
+      <span id="closeModal" class="close-btn">&times;</span>
+      <h3 id="modalTitle">Add Student</h3>
+      <input type="hidden" id="studentId">
+      <input type="text" id="name" placeholder="Name" required>
+      <input type="text" id="subject" placeholder="Subject" required>
+      <input type="number" id="marks" placeholder="Marks" min="0" max="100" required>
+      <button id="submitStudent" class="btn">Submit</button>
+    </div>
+  </div>
+
+  <!-- 🔧 JavaScript -->
+  <script src="{% static 'js/main.js' %}"></script>
+  <script>
+    const csrfToken = '{{ csrf_token }}';
+  </script>
+</body>
+</html>
