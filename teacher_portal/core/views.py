@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, HttpResponse
 from .models import Student
 import csv
+from django.core.paginator import Paginator
 
 # -------------------------------------------------------------------
 # Teacher Portal Views - Manages Student Data
@@ -96,3 +97,20 @@ def export_csv(request):
         writer.writerow([s.name, s.subject, s.marks])
 
     return response
+
+@login_required
+def home(request):
+    query = request.GET.get('q', '')
+    students = Student.objects.filter(
+        name__icontains=query
+    ) | Student.objects.filter(subject__icontains=query)
+
+    paginator = Paginator(students, 5)  # 5 students per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'home.html', {
+        'students': page_obj,
+        'query': query,
+        'page_obj': page_obj
+    })
